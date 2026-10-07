@@ -1,4 +1,5 @@
 <?php
+// *************** [NOTE] this library has been modified at some points to ensure compatibility with modern PHP & newer system versions *********
 // --------------------------------------------------------------------------------
 // PhpConcept Library - Zip Module 2.8.2
 // --------------------------------------------------------------------------------
@@ -1788,6 +1789,10 @@ class PclZip
         $v_memory_limit = trim($v_memory_limit);
         $last           = strtolower(substr($v_memory_limit, -1));
 
+      //******** COMPATIBILITY WITH PHP > 7.1 ************/
+      //*************************************************/
+      $v_memory_limit = (int) $v_memory_limit; 
+
         if ($last == 'g') {
             //$v_memory_limit = $v_memory_limit*1024*1024*1024;
             $v_memory_limit = $v_memory_limit * 1073741824;
@@ -2591,7 +2596,11 @@ class PclZip
                     }
 
                     // ----- Read the file content
-                    $v_content = @fread($v_file, $p_header['size']);
+                    //$v_content = @fread($v_file, $p_header['size']);
+
+                    //********** COMPATIBILITY WITH EMPTY FILES (0ko => i.e. .gitkeep) ***********/
+                    /****************************************************************************/
+                    $v_content = ($p_header['size'] > 0) ? @fread($v_file, $p_header['size']) : '';
 
                     // ----- Close the file
                     @fclose($v_file);
@@ -2932,6 +2941,9 @@ class PclZip
     {
         $v_result = 1;
 
+        /********* COMPATIBILITY WITH UTF-8 NORM for filenames **********/
+        $p_header['flag'] |= 2048;
+
         // ----- Store the offset position of the file
         $p_header['offset'] = ftell($this->zip_fd);
 
@@ -2968,6 +2980,9 @@ class PclZip
     public function privWriteCentralFileHeader(&$p_header)
     {
         $v_result = 1;
+
+        /********* COMPATIBILITY WITH UTF-8 NORM for filenames **********/
+        $p_header['flag'] |= 2048;
 
         // TBC
         //for (reset($p_header); $key = key($p_header); next($p_header)) {
